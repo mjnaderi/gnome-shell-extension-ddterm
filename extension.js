@@ -811,19 +811,18 @@ function update_window_geometry() {
     if (!current_window)
         return;
 
-    if (settings.get_boolean('window-maximize'))
-        return;
+    const should_maximize = settings.get_boolean('window-maximize');
 
     if (current_target_rect.equal(current_window.get_frame_rect()))
         return;
 
     if (current_window.maximized_horizontally && resize_x) {
-        if (current_target_rect.width < current_workarea.width) {
+        if (!should_maximize && current_target_rect.width < current_workarea.width) {
             Main.wm.skipNextEffect(current_window.get_compositor_private());
             current_window.unmaximize(Meta.MaximizeFlags.HORIZONTAL);
         }
     } else if (current_window.maximized_vertically && !resize_x) {
-        if (current_target_rect.height < current_workarea.height) {
+        if (!should_maximize && current_target_rect.height < current_workarea.height) {
             Main.wm.skipNextEffect(current_window.get_compositor_private());
             current_window.unmaximize(Meta.MaximizeFlags.VERTICAL);
         }
