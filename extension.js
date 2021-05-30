@@ -284,7 +284,7 @@ function enable() {
     extension_connections.connect(global.display, 'workareas-changed', update_workarea_for_window);
     extension_connections.connect(settings, 'changed::window-above', set_window_above);
     extension_connections.connect(settings, 'changed::window-stick', set_window_stick);
-    extension_connections.connect(settings, 'changed::window-size', update_target_rect);
+    extension_connections.connect(settings, 'changed::window-size', () => update_target_rect());
     extension_connections.connect(settings, 'changed::window-size', disable_window_maximize_setting);
     extension_connections.connect(settings, 'changed::window-position', update_window_position);
     extension_connections.connect(settings, 'changed::window-skip-taskbar', set_skip_taskbar);
@@ -599,14 +599,16 @@ function set_skip_taskbar() {
         wayland_client.show_in_window_list(current_window);
 }
 
-function update_workarea(monitor_index) {
+function update_workarea(monitor_index, update_geometry = true) {
+    // TODO: after GObject refactoring, update_geometry flag could be replaced
+    // by connecting to 'notify::workarea' later.
     if (monitor_index < 0)
         return;
 
     current_workarea = Main.layoutManager.getWorkAreaForMonitor(monitor_index);
     current_monitor_scale = global.display.get_monitor_scale(monitor_index);
 
-    update_target_rect();
+    update_target_rect(update_geometry);
 }
 
 function update_workarea_for_window() {
@@ -642,7 +644,12 @@ function set_current_window(win) {
     current_window_connections.connect(win, 'unmanaged', release_window);
 
     setup_maximized_handlers();
-    update_workarea(Main.layoutManager.currentMonitor.index);
+    update_workarea(Main.layoutManager.primaryMonitor.index, false);
+
+    if (Main.layoutManager.primaryMonitor.index !== Main.layoutManager.currentMonitor.index)
+        win.move_frame(true, current_workarea.x, current_workarea.y);
+
+    move_resize_window(current_window, current_target_rect);
 
     current_window_connections.connect(win, 'notify::window-type', setup_animation_overrides);
 
@@ -703,7 +710,7 @@ function target_rect_for_workarea_size(workarea, monitor_scale, size) {
     return target_rect;
 }
 
-function update_target_rect() {
+function update_target_rect(update_geometry = true) {
     if (!current_workarea)
         return;
 
@@ -713,7 +720,8 @@ function update_target_rect() {
         settings.get_double('window-size')
     );
 
-    update_window_geometry();
+    if (update_geometry)
+        update_window_geometry();
 }
 
 function schedule_geometry_fixup(win) {
