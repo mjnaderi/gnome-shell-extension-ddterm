@@ -38,6 +38,7 @@ var current_window = null;
 var current_workarea = null;
 var current_monitor_scale = 1;
 var current_target_rect = null;
+let current_window_placed = false;
 
 let bus_watch_id = null;
 let dbus_action_group = null;
@@ -641,8 +642,9 @@ function set_current_window(win) {
     current_window = win;
     current_window_connections.connect(win, 'unmanaged', release_window);
 
+    current_window_placed = false;
     setup_maximized_handlers();
-    update_workarea(Main.layoutManager.currentMonitor.index);
+    update_workarea(Main.layoutManager.primaryMonitor.index);
 
     current_window_connections.connect(win, 'notify::window-type', setup_animation_overrides);
 
@@ -773,7 +775,8 @@ function handle_maximized_horizontally(win) {
 }
 
 function move_resize_window(win, target_rect) {
-    win.move_resize_frame(false, target_rect.x, target_rect.y, target_rect.width, target_rect.height);
+    win.move_resize_frame(!current_window_placed, target_rect.x, target_rect.y, target_rect.width, target_rect.height);
+    current_window_placed = true;
 }
 
 function set_window_maximized() {
