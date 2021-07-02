@@ -306,6 +306,7 @@ function enable() {
     extension_connections.connect(settings, 'changed::window-skip-taskbar', set_skip_taskbar);
     extension_connections.connect(settings, 'changed::window-maximize', set_window_maximized);
     extension_connections.connect(settings, 'changed::window-monitor', update_monitor_index);
+    extension_connections.connect(settings, 'changed::window-monitor-connector', update_monitor_index);
     extension_connections.connect(settings, 'changed::override-window-animation', setup_animation_overrides);
     extension_connections.connect(settings, 'changed::show-animation', update_show_animation);
     extension_connections.connect(settings, 'changed::hide-animation', update_hide_animation);
@@ -624,11 +625,24 @@ function update_workarea() {
 }
 
 function get_monitor_index() {
-    if (settings.get_string('window-monitor') === 'primary')
-        return Main.layoutManager.primaryIndex;
+    if (settings.get_string('window-monitor') === 'primary') {
+        if (Main.layoutManager.primaryIndex >= 0)
+            return Main.layoutManager.primaryIndex;
+    }
 
-    if (settings.get_string('window-monitor') === 'focus')
-        return Main.layoutManager.focusIndex;
+    if (settings.get_string('window-monitor') === 'focus') {
+        if (Main.layoutManager.focusIndex >= 0)
+            return Main.layoutManager.focusIndex;
+    }
+
+    if (settings.get_string('window-monitor') === 'connector') {
+        const monitor_manager = Meta.MonitorManager.get();
+        if (monitor_manager) {
+            const index = monitor_manager.get_monitor_for_connector(settings.get_string('window-monitor-connector'));
+            if (index >= 0)
+                return index;
+        }
+    }
 
     return global.display.get_current_monitor();
 }
