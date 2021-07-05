@@ -3,9 +3,24 @@ name: test
 on:
   - push
   - pull_request
+  - workflow_dispatch
 
 jobs:
+  check_skip:
+    runs-on: ubuntu-20.04
+    outputs:
+      should_skip: ${{ steps.check_skip.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: amezin/skip-duplicate-actions@master
+        with:
+          concurrent_skipping: 'same_content_newer'
+          skip_after_successful_duplicate: 'true'
+          paths_ignore: '["README.md", "docs/**"]'
+          do_not_skip: '["workflow_dispatch", "schedule"]'
   test:
+    needs: check_skip
+    if: ${{ needs.check_skip.outputs.should_skip != 'true' }}
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
