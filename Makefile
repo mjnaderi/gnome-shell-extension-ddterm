@@ -64,7 +64,7 @@ gtk-builder-validate/prefs-gtk4.ui: prefs-gtk4.ui
 
 DEFAULT_SOURCES := extension.js prefs.js metadata.json
 
-EXTRA_SOURCES := $(filter-out test-prefs-gtk4.js extension_tests.js,$(wildcard *.js *.css))
+EXTRA_SOURCES := $(filter-out test-prefs-gtk4.js extension_tests.js gulpfile.js,$(wildcard *.js *.css))
 EXTRA_SOURCES += com.github.amezin.ddterm com.github.amezin.ddterm.Extension.xml
 EXTRA_SOURCES += menus.ui
 EXTRA_SOURCES += LICENSE

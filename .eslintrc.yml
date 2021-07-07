@@ -18,3 +18,8 @@ rules:
   jsdoc/require-jsdoc: off
 globals:
   global: readonly
+
+overrides:
+  - files: ["gulpfile.js", "tasks/gnomeext.js"]
+    env:
+      node: true
