@@ -1,2 +1,6 @@
+/.tox/
+/.pytest_cache/
+/__pycache__/
+
 /journal.txt
 /Xvfb_screen0.png

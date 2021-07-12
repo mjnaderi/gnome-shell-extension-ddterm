@@ -25,17 +25,15 @@ jobs:
     env:
       IMAGE: ghcr.io/amezin/gnome-shell-pod-${{ matrix.fedora-version }}:master
     steps:
+    - run: sudo apt-get install -y libgirepository1.0-dev
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v2-beta
     - run: npm ci
+    - uses: actions/setup-python@v2
+    - run: |
+        python -m pip install --upgrade pip
+        pip install tox
     - run: sudo podman pull "${{ env.IMAGE }}"
     - run: sudo podman run --rm -i -v "${PWD}:${PWD}" -w "${PWD}" "${{ env.IMAGE }}" xvfb-run make test-deps
-    - run: sudo ./run_test_podman.sh -i "${{ env.IMAGE }}" -s "${{ matrix.session }}"
+    - run: tox -- --junitxml=junit.xml --podman "sudo podman" --image "${{ env.IMAGE }}" --gnome-session "${{ matrix.session }}"
       working-directory: test
-    - uses: actions/upload-artifact@v2
-      with:
-        name: test-${{ matrix.fedora-version }}-${{ matrix.session }}
-        path: |
-          test/Xvfb_screen*.png
-          test/journal.txt
-      if: always()

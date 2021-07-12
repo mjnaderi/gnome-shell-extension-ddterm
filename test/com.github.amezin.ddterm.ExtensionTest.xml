@@ -3,9 +3,32 @@
 
 <node>
     <interface name="com.github.amezin.ddterm.ExtensionTest">
-        <method name="RunTest">
-            <arg name="filter" type="s" direction="in"/>
-            <arg name="filter_out" type="b" direction="in"/>
+        <property name="MonitorCount" type="i" access="read">
+            <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="false"/>
+        </property>
+        <property name="PrimaryMonitorIndex" type="i" access="read">
+            <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="false"/>
+        </property>
+        <property name="HasWindow" type="b" access="read"/>
+        <property name="WindowRect" type="(iiii)" access="read"/>
+        <property name="Workarea" type="(iiii)" access="read">
+            <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="false"/>
+        </property>
+        <property name="MaximizedHorizontally" type="b" access="read"/>
+        <property name="MaximizedVertically" type="b" access="read"/>
+
+        <method name="GetSetting">
+            <arg name="key" type="s" direction="in"/>
+            <arg name="value" type="v" direction="out"/>
         </method>
+        <method name="SetSetting">
+            <arg name="key" type="s" direction="in"/>
+            <arg name="value" type="v" direction="in"/>
+        </method>
+        <signal name="SettingChanged">
+            <arg name="key" type="s"/>
+        </signal>
+
+        <method name="Prepare"/>
     </interface>
 </node>

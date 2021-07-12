@@ -263,7 +263,7 @@ function disconnect(id) {
 
 function init() {
     try {
-        tests = Me.imports.test.extension_tests;
+        tests = Me.imports.test.dbus;
     } catch {
         // Tests aren't included in end user (extensions.gnome.org) packages
     }
