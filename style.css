@@ -1,3 +1,14 @@
 notebook header button image {
     -gtk-icon-style: symbolic;
 }
+
+notebook tabs tab {
+    min-width: 240px;
+    font-size: 16px;
+    font-family: "JetBrains Mono";
+}
+notebook tabs tab:checked {
+    background-color: rgba(255, 255, 255, 0.15);
+    font-weight: bold;
+    box-shadow: -3px 0 #E95420 inset;
+}
