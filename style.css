@@ -4,7 +4,7 @@ notebook header button image {
 
 notebook tabs tab {
     min-width: 240px;
-    font-size: 16px;
+    font-size: 14px;
     font-family: "JetBrains Mono";
 }
 notebook tabs tab:checked {
