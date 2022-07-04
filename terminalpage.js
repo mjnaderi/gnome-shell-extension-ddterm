@@ -24,6 +24,7 @@
 const { GLib, GObject, Gio, Pango, Gdk, Gtk, Vte } = imports.gi;
 const { Handlebars } = imports.handlebars;
 const { util, urldetect_patterns } = imports;
+const Me = imports.misc.extensionUtils.getCurrentExtension();
 
 const TITLE_TERMINAL_PROPERTIES = [
     'window-title',
@@ -103,7 +104,7 @@ GObject.type_ensure(Gio.ThemedIcon);
 
 var TerminalPage = GObject.registerClass(
     {
-        Template: util.APP_DATA_DIR.get_child('terminalpage.ui').get_uri(),
+        Template: Me.dir.get_child('terminalpage.ui').get_uri(),
         Children: [
             'terminal',
             'tab_label',
@@ -177,6 +178,7 @@ var TerminalPage = GObject.registerClass(
             // Widgets should be destroyed after all settings are unbound.
             this.run_on_destroy(() => this.tab_label.destroy(), this.tab_label);
             this.run_on_destroy(() => this.switcher_item.destroy(), this.switcher_item);
+            this.run_on_destroy(() => this.custom_title_popover.destroy(), this.custom_title_popover);
 
             this.method_handler(this.settings, 'changed::scrollback-lines', this.update_scrollback);
             this.method_handler(this.settings, 'changed::scrollback-unlimited', this.update_scrollback);
@@ -218,8 +220,20 @@ var TerminalPage = GObject.registerClass(
             this.method_handler(this.settings, 'changed::use-theme-colors', this.update_all_colors);
             this.update_all_colors();
 
-            this.method_handler(this.settings, 'changed::tab-expand', this.update_tab_expand);
-            this.update_tab_expand();
+            this.method_handler(this.settings, 'changed::tab-label-ellipsize-mode', this.update_label_ellipsize);
+            this.update_label_ellipsize();
+
+            this.method_handler(this.settings, 'changed::tab-label-width', this.update_label_width);
+
+            this.toplevel = this.get_toplevel();
+            this.configure_connection_id = null;
+            this.method_handler(this, 'hierarchy-changed', this.hierarchy_changed);
+            this.hierarchy_changed();
+
+            this.run_on_destroy(() => {
+                if (this.configure_connection_id && this.toplevel)
+                    this.toplevel.disconnect(this.configure_connection_id);
+            });
 
             this.method_handler(this.settings, 'changed::detect-urls', this.setup_url_detect);
             this.method_handler(this.settings, 'changed::detect-urls-as-is', this.setup_url_detect);
@@ -269,6 +283,8 @@ var TerminalPage = GObject.registerClass(
             this.terminal_popup_menu = Gtk.Menu.new_from_model(this.menus.get_object('terminal-popup'));
             this.setup_popup_menu(this.terminal, this.terminal_popup_menu);
             this.method_handler(this.terminal, 'button-press-event', this.terminal_button_press_early);
+            // https://github.com/amezin/gnome-shell-extension-ddterm/issues/116
+            this.terminal_popup_menu.get_style_context().add_class(Gtk.STYLE_CLASS_CONTEXT_MENU);
 
             const tab_popup_menu = Gtk.Menu.new_from_model(this.menus.get_object('tab-popup'));
             this.setup_popup_menu(this.tab_label, tab_popup_menu);
@@ -692,11 +708,24 @@ var TerminalPage = GObject.registerClass(
                 this.custom_title_popover.popup();
         }
 
-        update_tab_expand() {
-            if (this.settings.get_boolean('tab-expand'))
-                this.tab_label_label.ellipsize = Pango.EllipsizeMode.MIDDLE;
-            else
-                this.tab_label_label.ellipsize = Pango.EllipsizeMode.NONE;
+        update_label_ellipsize() {
+            this.tab_label_label.ellipsize = this.settings.get_enum('tab-label-ellipsize-mode');
+        }
+
+        update_label_width() {
+            if (!this.toplevel)
+                return;
+
+            this.tab_label.width_request = Math.floor(this.settings.get_double('tab-label-width') * this.toplevel.get_allocated_width());
+        }
+
+        hierarchy_changed() {
+            if (this.configure_connection_id && this.toplevel)
+                this.toplevel.disconnect(this.configure_connection_id);
+
+            this.toplevel = this.get_toplevel();
+            this.configure_connection_id = this.toplevel.connect('configure-event', this.update_label_width.bind(this));
+            this.update_label_width();
         }
 
         new_tab_before() {

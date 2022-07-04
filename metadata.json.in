@@ -7,8 +7,9 @@
     "3.36",
     "3.38",
     "40",
-    "41"
+    "41",
+    "42"
   ],
-  "version": 25,
+  "version": 31,
   "url": "https://github.com/amezin/gnome-shell-extension-ddterm"
 }

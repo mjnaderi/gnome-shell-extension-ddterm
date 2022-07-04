@@ -7,36 +7,46 @@ on:
 jobs:
   test:
     runs-on: ubuntu-20.04
+    container:
+      image: ghcr.io/amezin/gnome-shell-extension-ddterm-ci-docker-image:master
+      options: --privileged --cgroupns=private --tmpfs /tmp --tmpfs /run
+
     strategy:
       fail-fast: false
       matrix:
-        fedora-version:
-          - '32'
-          - '33'
-          - '34'
-          - '35'
+        image:
+          - 'fedora-35'
+          - 'fedora-36'
+          - 'debian-11'
+          - 'ubuntu-20.04'
+          - 'ubuntu-21.10'
         session:
-          - 'gnome-xsession'
-          - 'gnome-wayland-nested'
-          - 'gnome-wayland-nested-highdpi'
-          - 'gnome-wayland-nested-dual-monitor'
-        exclude:
-          - fedora-version: '33'
-            session: 'gnome-wayland-nested-dual-monitor'
+          - 'TestXSession'
+          - 'TestWayland'
+          - 'TestWaylandHighDpi'
+          - 'TestWaylandDualMonitor'
+
     env:
-      IMAGE: ghcr.io/amezin/gnome-shell-pod-${{ matrix.fedora-version }}:master
+      IMAGE: ghcr.io/amezin/gnome-shell-pod/${{ matrix.image }}:master
+      PY_COLORS: 1
+      TOX_TESTENV_PASSENV: PY_COLORS GITHUB_ACTIONS
+      TOXENV: py3-ghactions
+
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-node@v2-beta
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
     - run: npm ci
-    - run: sudo podman pull "${{ env.IMAGE }}"
-    - run: sudo podman run --rm -i -v "${PWD}:${PWD}" -w "${PWD}" "${{ env.IMAGE }}" xvfb-run make test-deps
-    - run: sudo ./run_test_podman.sh -i "${{ env.IMAGE }}" -s "${{ matrix.session }}"
+    - run: xvfb-run make test-deps
+    - run: tox -vv --notest --sitepackages
+      working-directory: test
+    - run: podman pull "${{ env.IMAGE }}"
+    - run: tox --sitepackages -- --container-image "${{ env.IMAGE }}" -n 2 --screenshot-failing-only -v "test_extension.py::${{ matrix.session }}"
       working-directory: test
     - uses: actions/upload-artifact@v2
       with:
-        name: test-${{ matrix.fedora-version }}-${{ matrix.session }}
+        name: ${{ matrix.session }}-${{ matrix.image }}
         path: |
-          test/Xvfb_screen*.png
-          test/journal.txt
+          test/report.html
+          test/junit.xml
+          test/assets
       if: always()

@@ -34,6 +34,7 @@ along with ddterm GNOME Shell extension.  If not, see <http://www.gnu.org/licens
   <object class="GtkEventBox" id="tab_label">
     <property name="visible">True</property>
     <property name="can-focus">False</property>
+    <property name="visible-window">False</property>
     <child>
       <object class="GtkBox">
         <property name="visible">True</property>
@@ -55,6 +56,7 @@ along with ddterm GNOME Shell extension.  If not, see <http://www.gnu.org/licens
           <object class="GtkButton" id="close_button">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
+            <property name="focus-on-click">False</property>
             <property name="receives-default">True</property>
             <property name="action-name">page.close</property>
             <property name="image">close_icon</property>
@@ -265,9 +267,7 @@ along with ddterm GNOME Shell extension.  If not, see <http://www.gnu.org/licens
               <object class="GtkModelButton">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
-                <property name="can-default">True</property>
-                <property name="has-default">True</property>
-                <property name="receives-default">False</property>
+                <property name="receives-default">True</property>
                 <property name="tooltip-text" translatable="yes">Find Next</property>
                 <property name="action-name">terminal.find-next</property>
                 <property name="icon">find_next_icon</property>

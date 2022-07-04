@@ -19,8 +19,8 @@
 
 'use strict';
 
-imports.gi.versions.Gdk = '4.0';
-imports.gi.versions.Gtk = '4.0';
+imports.gi.versions.Gdk = '3.0';
+imports.gi.versions.Gtk = '3.0';
 
 const System = imports.system;
 const { GObject, Gio, Gtk } = imports.gi;
@@ -41,11 +41,11 @@ var PrefsDialog = GObject.registerClass(
             settings: GObject.ParamSpec.object('settings', '', '', GObject.ParamFlags.READWRITE | GObject.ParamFlags.CONSTRUCT_ONLY, Gio.Settings),
         },
     },
-    class PrefsDialog extends Gtk.Window {
+    class PrefsDialog extends Gtk.Dialog {
         _init(params) {
             super._init(params);
 
-            this.set_child(new PrefsWidget({
+            this.get_content_area().add(new PrefsWidget({
                 settings: this.settings,
             }));
         }

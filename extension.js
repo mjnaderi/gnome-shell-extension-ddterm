@@ -19,7 +19,7 @@
 
 'use strict';
 
-/* exported init enable disable settings toggle window_manager */
+/* exported init enable disable settings toggle window_manager subprocess */
 
 const { GLib, Gio, Meta, Shell } = imports.gi;
 const ByteArray = imports.byteArray;
@@ -36,7 +36,7 @@ var settings = null;
 var window_manager = null;
 
 let wayland_client = null;
-let subprocess = null;
+var subprocess = null;
 
 let panel_icon = null;
 let app_dbus = null;
@@ -104,7 +104,7 @@ class ExtensionDBusInterface {
         activate();
     }
 
-    get TargetRect() {
+    GetTargetRect() {
         /*
          * Don't want to track mouse pointer continuously, so try to update the
          * index manually in multiple places. Also, Meta.CursorTracker doesn't
@@ -115,6 +115,10 @@ class ExtensionDBusInterface {
 
         const r = window_manager.target_rect;
         return [r.x, r.y, r.width, r.height];
+    }
+
+    get TargetRect() {
+        return this.GetTargetRect();
     }
 }
 
